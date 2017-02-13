@@ -1,0 +1,106 @@
+#!/bin/bash
+# murun (MUlti RUN) is a tool for run one or multiple scripts or folders on one or multiple servers.
+set -e
+
+TMPDIR=~/murun-tmp
+HOSTS_FILE=$1
+SCRIPT_FOLDERS=( ${@:2} )
+SCRIPT_FOLDERS=( ${SCRIPT_FOLDERS[@]%/} )
+
+if [ ! -z $1 ] && [ -f $1 ]; then
+    HOSTS_FILE=$(cat $1)
+else
+    HOSTS_FILE=( $1 )
+fi
+
+if [ -z "$HOSTS_FILE" ]; then
+    echo "ERROR: No hosts or address."
+    print_usage=1
+fi
+
+if [ -z ${SCRIPT_FOLDERS[0]} ]; then
+    echo "ERROR: No actions."
+    print_usage=1
+fi
+
+for SCRIPT_FOLDER in ${SCRIPT_FOLDERS[@]}; do
+#TODO: check this!
+    if [ ! -f "$SCRIPT_FOLDER" ] && [ ! -f "$SCRIPT_FOLDER/run" ]; then
+        echo "ERROR: No '$SCRIPT_FOLDER/run' script."
+        print_usage=1
+    fi
+done
+
+if [[ $print_usage == 1 ]]; then
+    printf '%s\n' "
+Usage: $(basename "$0") <hosts|[user@]address[:port]> <action> [action2] ...
+
+Args:
+- hosts - a single host address or a file with addresses list for ssh. Default port is 22.
+- action - a folder with a execution script 'run' and any files to 'scp' and local execution on each host from a 'hosts' file. Note that 'run' will be run from sudo!
+
+Examples:
+# Upgrade Ubuntu on all web servers from the hosts_web file:
+\$ $(basename "$0") hosts_web server/ubuntu-upgrade.sh
+
+# Initialize a new web server:
+\$ $(basename "$0") iam@web-new.example.com:2222 server/first-configure.sh server/ubuntu-upgrade.sh nginx/
+" | fold -s
+    echo
+    exit 1
+fi
+
+IFS=$'\n'
+for HOSTS_LINE in ${HOSTS_FILE[@]}; do
+    IFS=$':'
+    HOSTS_ARR=($HOSTS_LINE)
+    HOST=${HOSTS_ARR[0]}
+    PORT=${HOSTS_ARR[1]:-22}
+    
+    if [[ $HOST == \#* ]]; then
+        continue
+    fi
+    
+    ssh $HOST -p $PORT bash << EOF
+        if [ -d $TMPDIR ]; then
+            rm -rf $TMPDIR
+        fi
+        
+        mkdir $TMPDIR
+EOF
+
+    for SCRIPT_FOLDER in ${SCRIPT_FOLDERS[@]}; do
+        SCRIPT=`basename $SCRIPT_FOLDER`
+        FOLDER=`dirname $SCRIPT_FOLDER`/
+        if [ -d "$SCRIPT_FOLDER" ]; then
+            SCRIPT=$SCRIPT/run
+        fi
+        
+        if [[ $FOLDER == "./" ]]; then
+            FOLDER=""
+        fi
+        
+        echo
+        echo "--- RUN: ssh $HOST -p $PORT sudo $TMPDIR/$FOLDER$SCRIPT ---"
+        echo
+        
+        ssh $HOST -p $PORT mkdir -p $TMPDIR/$FOLDER
+        scp -P $PORT -r $SCRIPT_FOLDER $HOST:$TMPDIR/$FOLDER
+        
+        ssh $HOST -p $PORT sudo $TMPDIR/$FOLDER$SCRIPT || {
+            echo
+            echo "--- FAILED: ssh $HOST -p $PORT sudo $TMPDIR/$FOLDER$SCRIPT ---" 
+            echo
+            exit 1
+        }
+    done
+    
+    ssh $HOST -p $PORT bash << EOF
+        if [ -d $TMPDIR ]; then
+            rm -rf $TMPDIR
+        fi
+EOF
+done
+
+echo
+echo
