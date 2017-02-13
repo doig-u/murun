@@ -5,7 +5,7 @@ It is for configuration management. Put 'murun' and your admin, deploy scripts a
 
 Use a ssh key! If your key have a passphrase, make `eval ``ssh-agent -s`` && ssh-add` for one time passphrase request.
 
-Usage: murun <hosts|[user@]address[:port]> <action> [action2] ...
+Usage: murun hosts|[user@]address[:port] action [action2] ...
 
 Args:
 - hosts - a single host address or a file with addresses list for ssh. Default port is 22.
