@@ -9,7 +9,7 @@ Usage: murun hosts|[user@]address[:port] action [action2] ...
 
 Args:
 - hosts - a single host address or a file with addresses list for ssh. Default port is 22.
-- action - a script or a folder with a execution script 'run' and any files to 'scp' and local execution on each host from a 'hosts' file. Note that 'run' will be run from sudo!
+- action - a script or a folder with an execution script 'run' and any files to 'scp' and local execution on each host from a 'hosts' file. Note that 'run' will be run from sudo!
 
 ## Examples
 
