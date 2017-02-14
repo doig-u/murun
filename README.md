@@ -1,9 +1,9 @@
 # murun
 murun (MUlti RUN) is a tool for run one or multiple scripts or folders on one or multiple servers.
 
-It is for configuration management. Put 'murun' and your admin, deploy scripts and configs to project folder and add to private repo, for ex.
-
-Use a ssh key! If your key have a passphrase, make ``eval `ssh-agent` && ssh-add`` for one time passphrase request.
+It is for configuration management. Like [Ansible](https://www.ansible.com/) but much simple.
+Put 'murun' and your admin, deploy scripts and configs to project folder and add to private repo, for ex.
+Murun works over ssh, so use a ssh key. If the key have a passphrase, make ``eval `ssh-agent` && ssh-add`` for one time passphrase request.
 
 Usage: murun hosts|[user@]address[:port] action [action2] ...
 
@@ -27,3 +27,6 @@ Upgrade Ubuntu on all web servers from the hosts_web file:
 Initialize a new web server:
 
 `$ ../murun localhost:2222 server/first-configure.sh server/ubuntu-upgrade.sh nginx/`
+
+You can make hosts_all file for common tasks such ubuntu-upgrade.sh, actions like db/setup_master.sh and db/setup_replica.sh, etc.
+And try to keep your actions idempotent. 
