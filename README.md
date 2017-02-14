@@ -3,7 +3,7 @@ murun (MUlti RUN) is a tool for run one or multiple scripts or folders on one or
 
 It is for configuration management. Put 'murun' and your admin, deploy scripts and configs to project folder and add to private repo, for ex.
 
-Use a ssh key! If your key have a passphrase, make `eval ``ssh-agent -s`` && ssh-add` for one time passphrase request.
+Use a ssh key! If your key have a passphrase, make ``eval `ssh-agent -s` && ssh-add`` for one time passphrase request.
 
 Usage: murun hosts|[user@]address[:port] action [action2] ...
 
