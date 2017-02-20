@@ -1,57 +1,49 @@
 #!/bin/bash
-# murun (MUlti RUN) is a tool for run one or multiple scripts or folders on one or multiple servers.
+# murun (MUlti RUN) is a tool for run scripts on one or multiple servers.
 set -e
 
-TMPDIR=~/murun-tmp
-HOSTS_FILE=$1
-SCRIPT_FOLDERS=( ${@:2} )
-SCRIPT_FOLDERS=( ${SCRIPT_FOLDERS[@]%/} )
+TMPDIR=murun-tmp
+HOSTS=$1
+COMMAND=$2
 
 if [ ! -z $1 ] && [ -f $1 ]; then
-    HOSTS_FILE=$(cat $1)
+    HOSTS=$(cat $1)
 else
-    HOSTS_FILE=( $1 )
+    HOSTS=( $1 )
 fi
 
-if [ -z "$HOSTS_FILE" ]; then
+if [ -z "$HOSTS" ]; then
     echo "ERROR: No hosts or address."
     print_usage=1
 fi
 
-if [ -z ${SCRIPT_FOLDERS[0]} ]; then
-    echo "ERROR: No actions."
+if [ -z "$COMMAND" ]; then
+    echo "ERROR: No folder/stript."
     print_usage=1
 fi
 
-for SCRIPT_FOLDER in ${SCRIPT_FOLDERS[@]}; do
-#TODO: check this!
-    if [ ! -f "$SCRIPT_FOLDER" ] && [ ! -f "$SCRIPT_FOLDER/run" ]; then
-        echo "ERROR: No '$SCRIPT_FOLDER/run' script."
-        print_usage=1
-    fi
-done
-
 if [[ $print_usage == 1 ]]; then
     printf '%s\n' "
-Usage: $(basename "$0") <hosts|[user@]address[:port]> <action> [action2] ...
+Usage: $(basename "$0") hosts|[user@]address[:port] [sudo-user@]folder/script
 
 Args:
-- hosts - a single host address or a file with addresses list for ssh. Default port is 22.
-- action - a folder with a execution script 'run' and any files to 'scp' and local execution on each host from a 'hosts' file. Note that 'run' will be run from sudo!
+- hosts|address - a file with addresses list for ssh or a single host. Default port is 22.
+- folder/script - a 'folder' to 'scp' to 'adress:/home/user/$TMPDIR' and then 'sudo -u sudo-user /home/user/$TMPDIR/folder/script'. The folder can contain another needed sub-scripts, configs etc. By default the 'sudo-user' is the 'root'. After successful script execution the folder '$TMPDIR' will be removed.
 
 Examples:
-# Upgrade Ubuntu on all web servers from the hosts_web file:
-\$ $(basename "$0") hosts_web server/ubuntu-upgrade.sh
-
-# Initialize a new web server:
-\$ $(basename "$0") iam@web-new.example.com:2222 server/first-configure.sh server/ubuntu-upgrade.sh nginx/
+\$ cd examples
+\$ ../$(basename "$0") hosts_web common/ubuntu-upgrade.sh
+\$ ../$(basename "$0") iam@web3.example.com:2222 common/first-configure.sh
+\$ ../$(basename "$0") iam@web3.example.com:2222 nginx/install.sh
+OR just
+\$ ../$(basename "$0") iam@web3.example.com:2222 role_web.sh
 " | fold -s
     echo
     exit 1
 fi
 
 IFS=$'\n'
-for HOSTS_LINE in ${HOSTS_FILE[@]}; do
+for HOSTS_LINE in ${HOSTS[@]}; do
     IFS=$':'
     HOSTS_ARR=($HOSTS_LINE)
     HOST=${HOSTS_ARR[0]}
@@ -60,7 +52,7 @@ for HOSTS_LINE in ${HOSTS_FILE[@]}; do
     if [[ $HOST == \#* ]]; then
         continue
     fi
-    
+
     ssh $HOST -p $PORT bash << EOF
         if [ -d $TMPDIR ]; then
             rm -rf $TMPDIR
@@ -69,35 +61,35 @@ for HOSTS_LINE in ${HOSTS_FILE[@]}; do
         mkdir $TMPDIR
 EOF
 
-    for SCRIPT_FOLDER in ${SCRIPT_FOLDERS[@]}; do
-        SCRIPT=`basename $SCRIPT_FOLDER`
-        FOLDER=`dirname $SCRIPT_FOLDER`/
-        if [ -d "$SCRIPT_FOLDER" ]; then
-            SCRIPT=$SCRIPT/run
-        fi
-        
-        if [[ $FOLDER == "./" ]]; then
-            FOLDER=""
-        fi
-        
+    IFS=$'@'
+    COMMAND_ARR=($COMMAND)
+    SUDO_USER="root"
+    CMD_COMMAND=${COMMAND_ARR[0]}
+    if [ ! -z ${COMMAND_ARR[1]} ]; then
+        CMD_USER=${COMMAND_ARR[0]}
+        CMD_COMMAND=${COMMAND_ARR[1]}
+    fi
+
+    SCRIPT=`basename $CMD_COMMAND`
+    FOLDER=`dirname $CMD_COMMAND`/
+    
+    echo
+    echo "--- RUN: ssh $HOST -p $PORT sudo ~/$TMPDIR/$FOLDER$SCRIPT ---"
+    echo
+    
+    ssh $HOST -p $PORT "mkdir -p ~/$TMPDIR/$FOLDER"
+    scp -P $PORT -r $FOLDER* $HOST:~/$TMPDIR/$FOLDER
+    
+    ssh $HOST -p $PORT sudo -u $SUDO_USER ~/$TMPDIR/$FOLDER$SCRIPT || {
         echo
-        echo "--- RUN: ssh $HOST -p $PORT sudo $TMPDIR/$FOLDER$SCRIPT ---"
+        echo "--- FAILED: ssh $HOST -p $PORT sudo ~/$TMPDIR/$FOLDER$SCRIPT ---" 
         echo
-        
-        ssh $HOST -p $PORT mkdir -p $TMPDIR/$FOLDER
-        scp -P $PORT -r $SCRIPT_FOLDER $HOST:$TMPDIR/$FOLDER
-        
-        ssh $HOST -p $PORT sudo $TMPDIR/$FOLDER$SCRIPT || {
-            echo
-            echo "--- FAILED: ssh $HOST -p $PORT sudo $TMPDIR/$FOLDER$SCRIPT ---" 
-            echo
-            exit 1
-        }
-    done
+        exit 1
+    }
     
     ssh $HOST -p $PORT bash << EOF
-        if [ -d $TMPDIR ]; then
-            rm -rf $TMPDIR
+        if [ -d ~/$TMPDIR ]; then
+            rm -rf ~/$TMPDIR
         fi
 EOF
 done
