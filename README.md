@@ -32,6 +32,9 @@ $ ../murun iam@web3.example.com:2222 role_web.sh
 
 # Or for Python scripts (or any executables):
 $ ../murun iam@web3.example.com:2222 role_web.py
+
+# Or for Python scripts (or any executables):
+$ ../murun iam@web3.example.com:2222 role_web.py
 ```
 
 You can make hosts_all file for common tasks such ubuntu-upgrade.sh, actions like db/setup_master.sh and db/setup_replica.sh, etc.
