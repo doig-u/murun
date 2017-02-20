@@ -5,7 +5,7 @@ It is for configuration management. Like [Ansible](https://www.ansible.com/) but
 Put 'murun' and your admin, deploy scripts and configs to project folder and add to a private repo, for ex.
 Murun works over ssh, so use an ssh key. If the key has a passphrase, make ``eval `ssh-agent` && ssh-add`` for one time passphrase request.
 
-Usage: murun hosts|[user@]address[:port] \[sudo-user@\]folder/script
+Usage: `murun hosts|[user@]address[:port] \[sudo-user@\]folder/script`
 
 Args:
 
