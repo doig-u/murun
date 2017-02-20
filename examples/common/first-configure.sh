@@ -1,12 +1,17 @@
 #!/bin/bash
 set -ex
+cd `dirname $0`
 
+./ubuntu-upgrade.sh
+
+# timezone
 timedatectl set-timezone Europe/Moscow
 
-apt-get update
-apt-get install -y ntp ufw
+# ntp
+apt-get install -y ntp
 
 # ufw
+apt-get install -y ufw
 ufw disable
 ufw --force reset
 ufw allow "OpenSSH"

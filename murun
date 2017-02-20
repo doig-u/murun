@@ -18,7 +18,7 @@ if [ -z "$HOSTS" ]; then
 fi
 
 if [ -z "$COMMAND" ]; then
-    echo "ERROR: No folder/stript."
+    echo "ERROR: No folder/script."
     print_usage=1
 fi
 
@@ -28,14 +28,15 @@ Usage: $(basename "$0") hosts|[user@]address[:port] [sudo-user@]folder/script
 
 Args:
 - hosts|address - a file with addresses list for ssh or a single host. Default port is 22.
-- folder/script - a 'folder' to 'scp' to 'adress:/home/user/$TMPDIR' and then 'sudo -u sudo-user /home/user/$TMPDIR/folder/script'. The folder can contain another needed sub-scripts, configs etc. By default the 'sudo-user' is the 'root'. After successful script execution the folder '$TMPDIR' will be removed.
+- folder/script - a 'folder' to 'scp' to 'adress:/home/user/$TMPDIR' and then 'sudo -u sudo-user script'. The folder can contain another needed sub-scripts, configs etc. By default the 'sudo-user' is the 'root'. After successful script execution the folder '$TMPDIR' will be removed.
 
 Examples:
 \$ cd examples
-\$ ../$(basename "$0") hosts_web common/ubuntu-upgrade.sh
+\$ ../$(basename "$0") hosts_all common/ubuntu-upgrade.sh
+OR
 \$ ../$(basename "$0") iam@web3.example.com:2222 common/first-configure.sh
 \$ ../$(basename "$0") iam@web3.example.com:2222 nginx/install.sh
-OR just
+OR
 \$ ../$(basename "$0") iam@web3.example.com:2222 role_web.sh
 " | fold -s
     echo
@@ -80,7 +81,7 @@ EOF
     ssh $HOST -p $PORT "mkdir -p ~/$TMPDIR/$FOLDER"
     scp -P $PORT -r $FOLDER* $HOST:~/$TMPDIR/$FOLDER
     
-    ssh $HOST -p $PORT sudo -u $SUDO_USER ~/$TMPDIR/$FOLDER$SCRIPT || {
+    ssh $HOST -p $PORT "cd ~/$TMPDIR/$FOLDER && sudo -u $SUDO_USER -s ./$SCRIPT" || {
         echo
         echo "--- FAILED: ssh $HOST -p $PORT sudo ~/$TMPDIR/$FOLDER$SCRIPT ---" 
         echo

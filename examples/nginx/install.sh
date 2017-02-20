@@ -1,7 +1,6 @@
 #!/bin/bash
 set -ex
-
-MYDIR=`dirname $0`
+cd `dirname $0`
 
 # Remove old nginx and configs
 apt-get purge -y nginx nginx-common
@@ -12,8 +11,8 @@ apt-get install -y --no-install-recommends --no-install-suggests -y ca-certifica
 
 mv /etc/nginx/sites-available/default /etc/nginx/conf.d/default.conf
 rm -rf /etc/nginx/sites-enabled /etc/nginx/sites-available
-    
-cp $MYDIR/nginx.conf /etc/nginx/
+
+cp nginx.conf /etc/nginx/
 
 # Configure firewall
 if hash ufw 2>/dev/null; then
