@@ -30,14 +30,7 @@ Args:
 - hosts|address - a file with addresses list for ssh or a single host. Default port is 22.
 - folder/script - a 'folder' to 'scp' to 'adress:/home/user/$TMPDIR' and then 'sudo -u sudo-user script'. The folder can contain another needed sub-scripts, configs etc. By default the 'sudo-user' is the 'root'. After successful script execution the folder '$TMPDIR' will be removed.
 
-Examples:
-\$ cd examples
-\$ ../murun hosts_all common/ubuntu-upgrade.sh
-OR
-\$ ../murun iam@web3.example.com:2222 common/first-configure.sh
-\$ ../murun iam@web3.example.com:2222 nginx/install.sh
-OR
-\$ ../murun iam@web3.example.com:2222 role_web.sh
+More in README.md.
 " | fold -s
     echo
     exit 1
