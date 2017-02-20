@@ -21,14 +21,14 @@ For ex, run a new vagrant ubuntu 16.04 intance (these examples tested on Vagrant
 $ cd examples
 
 # Upgrade all hosts:
-$ ../$(basename "$0") hosts_all common/ubuntu-upgrade.sh
+$ ../murun hosts_all common/ubuntu-upgrade.sh
 
 # Initialize a new host as web frontend. first-configure.sh also includes ubuntu-upgrade.sh:
-$ ../$(basename "$0") iam@web3.example.com:2222 common/first-configure.sh
-$ ../$(basename "$0") iam@web3.example.com:2222 nginx/install.sh
+$ ../murun iam@web3.example.com:2222 common/first-configure.sh
+$ ../murun iam@web3.example.com:2222 nginx/install.sh
 
 # Initialize a new host as web frontend with specified role:
-$ ../$(basename "$0") iam@web3.example.com:2222 role_web.sh
+$ ../murun iam@web3.example.com:2222 role_web.sh
 ```
 
 You can make hosts_all file for common tasks such ubuntu-upgrade.sh, actions like db/setup_master.sh and db/setup_replica.sh, etc.

@@ -24,7 +24,7 @@ fi
 
 if [[ $print_usage == 1 ]]; then
     printf '%s\n' "
-Usage: $(basename "$0") hosts|[user@]address[:port] [sudo-user@]folder/script
+Usage: murun hosts|[user@]address[:port] [sudo-user@]folder/script
 
 Args:
 - hosts|address - a file with addresses list for ssh or a single host. Default port is 22.
@@ -32,12 +32,12 @@ Args:
 
 Examples:
 \$ cd examples
-\$ ../$(basename "$0") hosts_all common/ubuntu-upgrade.sh
+\$ ../murun hosts_all common/ubuntu-upgrade.sh
 OR
-\$ ../$(basename "$0") iam@web3.example.com:2222 common/first-configure.sh
-\$ ../$(basename "$0") iam@web3.example.com:2222 nginx/install.sh
+\$ ../murun iam@web3.example.com:2222 common/first-configure.sh
+\$ ../murun iam@web3.example.com:2222 nginx/install.sh
 OR
-\$ ../$(basename "$0") iam@web3.example.com:2222 role_web.sh
+\$ ../murun iam@web3.example.com:2222 role_web.sh
 " | fold -s
     echo
     exit 1
