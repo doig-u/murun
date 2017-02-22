@@ -7,9 +7,9 @@ HOSTS=$1
 COMMAND=$2
 
 if [ ! -z $1 ] && [ -f $1 ]; then
-    HOSTS=$(cat $1)
+    mapfile -t HOSTS < $1
 else
-    HOSTS=( $1 )
+    HOSTS=($1)
 fi
 
 if [ -z "$HOSTS" ]; then
@@ -36,27 +36,19 @@ More in README.md.
     exit 1
 fi
 
-IFS=$'\n'
+IFS=""
 for HOSTS_LINE in ${HOSTS[@]}; do
-    IFS=$':'
-    HOSTS_ARR=($HOSTS_LINE)
-    HOST=${HOSTS_ARR[0]}
-    PORT=${HOSTS_ARR[1]:-22}
-    
-    if [[ $HOST == \#* ]]; then
+    if [[ $HOSTS_LINE == \#* ]]; then
         continue
     fi
+    
+    IFS=':' read -r -a HOSTS_ARR <<< $HOSTS_LINE
+    #IFS=$':'
+    #HOSTS_ARR=($HOSTS_LINE)
+    HOST=${HOSTS_ARR[0]}
+    PORT=${HOSTS_ARR[1]:-22}
 
-    ssh $HOST -p $PORT bash << EOF
-        if [ -d $TMPDIR ]; then
-            rm -rf $TMPDIR
-        fi
-        
-        mkdir $TMPDIR
-EOF
-
-    IFS=$'@'
-    COMMAND_ARR=($COMMAND)
+    IFS='@' read -r -a COMMAND_ARR <<< $COMMAND
     SUDO_USER="root"
     CMD_COMMAND=${COMMAND_ARR[0]}
     if [ ! -z ${COMMAND_ARR[1]} ]; then
@@ -70,6 +62,14 @@ EOF
     echo
     echo "--- RUN: ssh $HOST -p $PORT sudo ~/$TMPDIR/$FOLDER$SCRIPT ---"
     echo
+    
+    ssh $HOST -p $PORT bash << EOF
+        if [ -d $TMPDIR ]; then
+            rm -rf $TMPDIR
+        fi
+        
+        mkdir $TMPDIR
+EOF
     
     ssh $HOST -p $PORT "mkdir -p ~/$TMPDIR/$FOLDER"
     scp -P $PORT -r $FOLDER* $HOST:~/$TMPDIR/$FOLDER
@@ -88,5 +88,7 @@ EOF
 EOF
 done
 
+unset IFS
+
 echo
-echo
+
