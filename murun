@@ -74,7 +74,7 @@ EOF
     ssh $HOST -p $PORT "mkdir -p ~/$TMPDIR/$FOLDER"
     scp -P $PORT -r $FOLDER* $HOST:~/$TMPDIR/$FOLDER
     
-    ssh $HOST -p $PORT "cd ~/$TMPDIR/$FOLDER && sudo -u $SUDO_USER -s ./$SCRIPT" || {
+    ssh -t $HOST -p $PORT "cd ~/$TMPDIR/$FOLDER && sudo -u $SUDO_USER -s ./$SCRIPT" || {
         echo
         echo "--- FAILED: ssh $HOST -p $PORT sudo ~/$TMPDIR/$FOLDER$SCRIPT ---" 
         echo
