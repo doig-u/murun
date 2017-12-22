@@ -52,7 +52,7 @@ for HOSTS_LINE in ${HOSTS[@]}; do
     SUDO_USER="root"
     CMD_COMMAND=${COMMAND_ARR[0]}
     if [ ! -z ${COMMAND_ARR[1]} ]; then
-        CMD_USER=${COMMAND_ARR[0]}
+        SUDO_USER=${COMMAND_ARR[0]}
         CMD_COMMAND=${COMMAND_ARR[1]}
     fi
 
